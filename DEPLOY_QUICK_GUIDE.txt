@@ -1,0 +1,127 @@
+╔═══════════════════════════════════════════════════════════╗
+║       VERCEL DEPLOYMENT - QUICK GUIDE                     ║
+║       Filia Interior - Laravel Project                    ║
+╚═══════════════════════════════════════════════════════════╝
+
+📋 PERSIAPAN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Pastikan Git Bash / Terminal ready
+2. Node.js & NPM terinstall
+3. PHP terinstall
+4. Database Aiven sudah running
+
+🚀 LANGKAH DEPLOY (5 Menit!)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: Persiapan
+─────────────────
+Double-click: pre-deploy.bat
+
+atau manual:
+    npm install
+    npm run build
+    php artisan key:generate --show
+    
+⚠️  COPY APP_KEY yang muncul!
+
+STEP 2: Install Vercel CLI
+───────────────────────────
+    npm install -g vercel
+
+STEP 3: Login Vercel
+────────────────────
+    vercel login
+
+STEP 4: Deploy Preview
+──────────────────────
+    vercel
+
+Jawab pertanyaan:
+- Setup and deploy? → Yes
+- Link to project? → No
+- Project name? → filia-interior
+- Directory? → ./ (Enter)
+
+STEP 5: Set Environment Variables
+──────────────────────────────────
+Buka: https://vercel.com/[username]/filia-interior/settings
+
+Go to: Environment Variables
+
+Tambah variable berikut (All = Production):
+
+    APP_KEY = base64:... (dari Step 1)
+    APP_URL = https://filia-interior-xxx.vercel.app
+    DB_CONNECTION = aiven
+    DB_HOST = (your-aiven-host)
+    DB_PORT = (your-db-port)
+    DB_DATABASE = (your-db-name)
+    DB_USERNAME = (your-db-username)
+    DB_PASSWORD = (your-db-password)
+    MAIL_USERNAME = (your-email@gmail.com)
+    MAIL_PASSWORD = (your-gmail-app-password)
+
+Save!
+
+STEP 6: Deploy Production
+──────────────────────────
+    vercel --prod
+
+✅ DONE! Live di: https://filia-interior-xxx.vercel.app
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 DEPLOY UPDATE BERIKUTNYA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Setelah ada perubahan code:
+
+    npm run build          # Build assets
+    vercel --prod          # Deploy
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️  CATATAN PENTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. FILE UPLOAD TIDAK PERSIST DI VERCEL!
+   → Uploaded photos akan hilang
+   → Solusi: Gunakan Cloudinary/AWS S3
+
+2. Session HARUS pakai COOKIE
+   → Jangan database di production
+
+3. Cache HARUS pakai ARRAY
+   → Serverless tidak support file cache
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐛 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Error 500?
+    → Check APP_KEY sudah diset
+    → Check database credentials
+
+CSS tidak load?
+    → Run: npm run build
+    → Deploy lagi: vercel --prod
+
+Database error?
+    → Test: php sync_to_aiven.php
+    → Check Aiven dashboard
+
+View logs:
+    → vercel logs --follow
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 DOKUMENTASI LENGKAP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Baca file:
+- DEPLOY_VERCEL.md (Detailed guide)
+- VERCEL_SETUP_SUMMARY.md (Full overview)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Created: 5 November 2025
+By: Jarvis AI Assistant
+
+🎉 GOOD LUCK, TUAN FADHLI! 🚀
