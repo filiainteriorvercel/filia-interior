@@ -53,9 +53,11 @@
     "VIEW_COMPILED_PATH": "/tmp/views",
     "CACHE_DRIVER": "array",
     "LOG_CHANNEL": "stderr",
-    "SESSION_DRIVER": "cookie",
+    "SESSION_DRIVER": "database",
+    "SESSION_CONNECTION": "aiven",
     "SESSION_LIFETIME": "120",
     "FILESYSTEM_DISK": "local",
-    "QUEUE_CONNECTION": "sync"
+    "QUEUE_CONNECTION": "sync",
+    "DB_CONNECTION": "aiven"
   }
 }
