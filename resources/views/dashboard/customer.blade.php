@@ -27,7 +27,13 @@
                             @foreach($userProgressUpdates as $progress)
                                 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition duration-300">
                                     @if($progress->foto)
-                                        <img src="{{ asset($progress->foto) }}" alt="Progress Update" class="w-full h-48 object-cover">
+                                        @if(str_starts_with($progress->foto, 'data:'))
+                                            {{-- Base64 image from Vercel - use directly --}}
+                                            <img src="{{ $progress->foto }}" alt="Progress Update" class="w-full h-48 object-cover">
+                                        @else
+                                            {{-- File path from local - use asset() helper --}}
+                                            <img src="{{ asset($progress->foto) }}" alt="Progress Update" class="w-full h-48 object-cover">
+                                        @endif
                                     @else
                                         <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
                                             <svg class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -44,7 +50,7 @@
                                         <p class="text-gray-600 text-sm">{{ $progress->deskripsi }}</p>
                                         
                                         @if($progress->foto)
-                                            <button onclick="viewProgressImage('{{ asset($progress->foto) }}', '{{ $progress->id_project }}', '{{ $progress->deskripsi }}')"  
+                                            <button onclick="viewProgressImage('{{ str_starts_with($progress->foto, 'data:') ? $progress->foto : asset($progress->foto) }}', '{{ $progress->id_project }}', '{{ $progress->deskripsi }}')"  
                                                     class="mt-3 text-blue-600 hover:text-blue-700 text-sm font-medium">
                                                 Lihat Detail →
                                             </button>
