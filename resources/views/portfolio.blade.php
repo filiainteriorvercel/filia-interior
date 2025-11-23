@@ -74,7 +74,7 @@
             </p>
         </div>
 
-        @if(count($portfolioImages) > 0 || count($portfolios) > 0)
+        @if(count($portfolios) > 0)
             <!-- Filter Tabs -->
             <div class="text-center mb-12">
                 <!-- Desktop Filter -->
@@ -121,8 +121,8 @@
                 @foreach($portfolios as $portfolio)
                     <div class="portfolio-item group bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2" data-category="{{ strtolower($portfolio->category) }}">
                         <div class="relative overflow-hidden">
-                            @if($portfolio->image)
-                                <img src="{{ asset('storage/' . $portfolio->image) }}" alt="{{ $portfolio->title }}" class="w-full h-56 sm:h-64 lg:h-72 object-cover transition-transform duration-500 group-hover:scale-110">
+                            @if($portfolio->foto)
+                                <img src="{{ Str::startsWith($portfolio->foto, 'data:image') ? $portfolio->foto : asset($portfolio->foto) }}" alt="{{ $portfolio->judul }}" class="w-full h-56 sm:h-64 lg:h-72 object-cover transition-transform duration-500 group-hover:scale-110">
                             @else
                                 <div class="w-full h-56 sm:h-64 lg:h-72 gradient-bg flex items-center justify-center">
                                     <svg class="w-12 sm:w-16 h-12 sm:h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,8 +135,8 @@
                                 <div class="glass-bg rounded-lg sm:rounded-xl p-3 sm:p-4 text-white">
                                     <div class="flex items-center justify-between">
                                         <div>
-                                            <h3 class="font-heading font-semibold text-base sm:text-lg">{{ $portfolio->title }}</h3>
-                                            <p class="text-xs sm:text-sm text-purple-200">{{ $portfolio->location }}</p>
+                                            <h3 class="font-heading font-semibold text-base sm:text-lg">{{ $portfolio->judul }}</h3>
+                                            <p class="text-xs sm:text-sm text-purple-200">{{ $portfolio->lokasi }}</p>
                                         </div>
                                         <div class="w-6 sm:w-8 h-6 sm:h-8 bg-white bg-opacity-20 rounded-md sm:rounded-lg flex items-center justify-center">
                                             <svg class="w-3 sm:w-4 h-3 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,15 +148,15 @@
                             </div>
                         </div>
                         <div class="p-4 sm:p-6">
-                            <h3 class="text-lg sm:text-xl font-heading font-semibold text-gray-900 mb-2">{{ $portfolio->title }}</h3>
-                            <p class="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 leading-relaxed">{{ $portfolio->description }}</p>
+                            <h3 class="text-lg sm:text-xl font-heading font-semibold text-gray-900 mb-2">{{ $portfolio->judul }}</h3>
+                            <p class="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 leading-relaxed">{{ $portfolio->deskripsi }}</p>
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center text-gray-500 text-xs sm:text-sm">
                                     <svg class="w-3 sm:w-4 h-3 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     </svg>
-                                    {{ $portfolio->location }}
+                                    {{ $portfolio->lokasi }}
                                 </div>
                                 <span class="px-2 sm:px-3 py-1 text-xs font-semibold text-purple-600 bg-purple-100 rounded-full">
                                     {{ $portfolio->category }}
@@ -165,50 +165,10 @@
                         </div>
                     </div>
                 @endforeach
-                
-                <!-- Static Portfolio Items -->
-                @foreach($portfolioImages as $index => $image)
-                    <div class="portfolio-item group bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2" data-category="{{ $index % 3 == 0 ? 'residential' : ($index % 3 == 1 ? 'commercial' : 'luxury') }}">
-                        <div class="relative overflow-hidden">
-                            <img src="{{ asset($image['path']) }}" alt="Portfolio {{ $index + 1 }}" class="w-full h-56 sm:h-64 lg:h-72 object-cover transition-transform duration-500 group-hover:scale-110">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-300"></div>
-                            <div class="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 transform translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                <div class="glass-bg rounded-lg sm:rounded-xl p-3 sm:p-4 text-white">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <h3 class="font-heading font-semibold text-base sm:text-lg">{{ ucwords(str_replace(['_', '-'], ' ', $image['title'])) }}</h3>
-                                            <p class="text-xs sm:text-sm text-purple-200">{{ ['Jakarta', 'Surabaya', 'Bandung', 'Medan', 'Semarang', 'Yogyakarta'][$index % 6] }}</p>
-                                        </div>
-                                        <div class="w-6 sm:w-8 h-6 sm:h-8 bg-white bg-opacity-20 rounded-md sm:rounded-lg flex items-center justify-center">
-                                            <svg class="w-3 sm:w-4 h-3 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-4 sm:p-6">
-                            <h3 class="text-lg sm:text-xl font-heading font-semibold text-gray-900 mb-2">{{ ucwords(str_replace(['_', '-'], ' ', $image['title'])) }}</h3>
-                            <p class="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 leading-relaxed">{{ ['Ruang tamu modern dengan sentuhan contemporary yang elegan dan fungsional.', 'Kantor eksekutif dengan desain professional yang meningkatkan produktivitas.', 'Kamar tidur mewah dengan suasana yang menenangkan dan relaxing.', 'Dapur kontemporer dengan layout efisien dan peralatan modern.', 'Kamar mandi minimalis dengan konsep clean dan sophisticated.', 'Ruang makan klasik dengan atmosfer hangat untuk keluarga.'][$index % 6] }}</p>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center text-gray-500 text-xs sm:text-sm">
-                                    <svg class="w-3 sm:w-4 h-3 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                    {{ ['Jakarta', 'Surabaya', 'Bandung', 'Medan', 'Semarang', 'Yogyakarta'][$index % 6] }}
-                                </div>
-                                <span class="px-2 sm:px-3 py-1 text-xs font-semibold text-purple-600 bg-purple-100 rounded-full">
-                                    {{ $index % 3 == 0 ? 'Residential' : ($index % 3 == 1 ? 'Commercial' : 'Luxury') }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
+
             </div>
             
-            @if(count($portfolioImages) == 0 && count($portfolios) == 0)
+            @if(count($portfolios) == 0)
                 <div class="text-center py-16">
                     <div class="w-32 h-32 mx-auto mb-8 gradient-bg rounded-2xl flex items-center justify-center">
                         <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,7 +177,7 @@
                     </div>
                     <h3 class="text-2xl font-heading font-bold text-gray-900 mb-4">Portfolio Segera Hadir</h3>
                     <p class="text-gray-600 max-w-md mx-auto">
-                        Tim kami sedang menyiapkan koleksi portfolio terbaik untuk Anda. Tambahkan gambar di folder public/images/portfolio/ atau kelola melalui dashboard admin.
+                        Tim kami sedang menyiapkan koleksi portfolio terbaik untuk Anda. Silakan cek kembali nanti.
                     </p>
                 </div>
             @endif

@@ -8,6 +8,7 @@ class Portfolio extends Model
 {
     protected $fillable = [
         'judul',
+        'category',
         'deskripsi',
         'lokasi',
         'foto'

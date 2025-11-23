@@ -290,7 +290,7 @@
 
         .page-transition.loaded {
             opacity: 1;
-            transform: translateY(0);
+            transform: none;
         }
 
         /* Enhanced Link Transitions */
@@ -728,6 +728,108 @@
                 }
             });
         });
+    </script>
+    {{-- Global Toast Notification --}}
+    <style>
+        #toast-container {
+            position: fixed;
+            top: 6rem; /* top-24 */
+            right: 1rem; /* right-4 */
+            z-index: 9999;
+            width: 90vw;
+            max-width: 28rem; /* max-w-md */
+            pointer-events: none;
+
+            visibility: hidden; /* Start hidden */
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #toast-container.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(0);
+        }
+    </style>
+
+    <div id="toast-container">
+        <div class="relative bg-white shadow-2xl rounded-xl p-5 flex items-start border border-gray-100 overflow-hidden pointer-events-auto ring-1 ring-black/5">
+            {{-- Gradient Accent Strip --}}
+            <div class="absolute top-0 bottom-0 left-0 w-1.5 bg-gradient-to-b from-purple-600 to-pink-600"></div>
+            
+            {{-- Icon --}}
+            <div class="flex-shrink-0 mr-4">
+                <div class="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center ring-4 ring-green-50/50">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+            </div>
+            
+            {{-- Content --}}
+            <div class="flex-1 pt-0.5">
+                <h3 class="text-base font-bold text-gray-900 mb-1">Pesan Berhasil Dikirim!</h3>
+                <p class="text-sm text-gray-600 leading-relaxed font-medium" id="toast-message"></p>
+            </div>
+            
+            {{-- Close Button --}}
+            <div class="flex-shrink-0 ml-4">
+                <button onclick="hideToast()" class="text-gray-400 hover:text-gray-600 transition-colors p-1.5 rounded-lg hover:bg-gray-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Progress Bar --}}
+            <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-purple-600 to-pink-600 transition-all duration-[5000ms] ease-linear w-full" id="toast-progress"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const successMessage = "{{ session('success') }}";
+            if (successMessage) {
+                showToast(successMessage);
+            }
+        });
+
+        let toastTimeout;
+
+        function showToast(message) {
+            const toast = document.getElementById('toast-container');
+            const messageEl = document.getElementById('toast-message');
+            const progress = document.getElementById('toast-progress');
+            
+            if (!toast || !messageEl || !progress) return;
+
+            messageEl.textContent = message;
+            
+            // Add class to show
+            toast.classList.add('show');
+            
+            progress.style.width = '100%';
+            
+            // Start progress animation
+            setTimeout(() => {
+                progress.style.width = '0%';
+            }, 50);
+            
+            // Clear existing timeout if any
+            if (toastTimeout) clearTimeout(toastTimeout);
+
+            // Auto hide
+            toastTimeout = setTimeout(() => {
+                hideToast();
+            }, 5000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast-container');
+            if (!toast) return;
+            
+            toast.classList.remove('show');
+        }
     </script>
 </body>
 </html>

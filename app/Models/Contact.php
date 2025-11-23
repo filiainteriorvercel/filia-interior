@@ -10,6 +10,7 @@ class Contact extends Model
         'nama',
         'email', 
         'telepon',
+        'subject',
         'pesan'
     ];
 }

@@ -22,6 +22,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Progress resource routes
     Route::resource('progress', ProgressController::class);
+    
+    // Portfolio resource routes
+    Route::resource('dashboard/portfolios', PortfolioController::class, [
+        'names' => 'dashboard.portfolios'
+    ]);
 });
 
 Route::middleware('auth')->group(function () {
