@@ -328,7 +328,7 @@
         }
     </style>
 </head>
-<body class="font-body antialiased bg-gray-50">
+<body class="font-body antialiased bg-gray-50 overflow-x-hidden">
     <div class="min-h-screen">
         <!-- Navigation -->
         <nav class="glass-effect fixed w-full top-0 z-50 border-b border-gray-100 nav-animate">

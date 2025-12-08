@@ -25,7 +25,19 @@ class HomeController extends Controller
             return file_exists(public_path($image));
         });
 
-        return view('home', compact('companyImages'));
+        // Load portfolio images from public/images/portfolio
+        $portfolioPath = public_path('images/portfolio');
+        $portfolioImages = [];
+        
+        // Strictly load images 1.jpg to 8.jpg as requested
+        for ($i = 1; $i <= 8; $i++) {
+            $path = 'images/portfolio/' . $i . '.jpg';
+            if (file_exists(public_path($path))) {
+                $portfolioImages[] = $path;
+            }
+        }
+
+        return view('home', compact('companyImages', 'portfolioImages'));
     }
 
     public function history()
