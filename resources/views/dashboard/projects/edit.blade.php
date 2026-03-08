@@ -33,11 +33,14 @@
 
                 <div class="mt-8 pm-form-grid">
                     <div class="pm-field">
-                        <label for="project_code" class="pm-label">ID Project</label>
-                        <input type="text" id="project_code" name="project_code" value="{{ old('project_code', $project->project_code) }}" required class="pm-input">
-                        @error('project_code')
-                            <p class="text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <span class="pm-label">ID Project</span>
+                        <div class="pm-input flex items-center justify-between gap-4 bg-stone-100 text-slate-700">
+                            <div>
+                                <p class="font-semibold">{{ $project->project_code }}</p>
+                                <p class="text-sm text-slate-500">ID project bersifat sistem dan tidak diubah saat edit.</p>
+                            </div>
+                            <span class="rounded-full bg-stone-900 px-3 py-1 text-xs font-semibold tracking-[0.24em] text-stone-50">LOCKED</span>
+                        </div>
                     </div>
 
                     <div class="pm-field">

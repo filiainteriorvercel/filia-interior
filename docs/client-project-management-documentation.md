@@ -8,7 +8,7 @@ Website Filia Interior yang semula berfungsi sebagai company profile dan media u
 
 Upgrade ini berfokus pada:
 
-1. Penambahan identitas project yang lebih terstruktur melalui ID Project.
+1. Penambahan identitas project yang lebih terstruktur melalui ID Project otomatis.
 2. Penambahan identitas customer melalui ID Customer.
 3. Dukungan repeat order, sehingga 1 customer dapat memiliki banyak project.
 4. Histori progress project yang terhubung langsung ke project.
@@ -42,7 +42,7 @@ Fitur di bawah ini sudah diimplementasikan di aplikasi:
 
 ### 2.2 Fitur Baru Hasil Upgrade
 
-1. Master data project dengan `project_code` atau ID Project unik.
+1. Master data project dengan `project_code` atau ID Project unik yang dibuat otomatis oleh sistem.
 2. Master data customer dengan `customer_code` atau ID Customer unik.
 3. Relasi 1 customer memiliki banyak project.
 4. Pencarian project dan progress berdasarkan ID Project, ID Customer, nama customer, email, dan nomor HP.
@@ -129,7 +129,7 @@ Contoh format:
 Fitur:
 
 1. Admin dapat membuat project baru.
-2. Setiap project memiliki `project_code` unik.
+2. Setiap project memiliki `project_code` unik yang dibuat otomatis oleh sistem.
 3. Project terhubung ke 1 customer melalui `user_id`.
 4. Data customer juga disimpan sebagai snapshot di tabel project:
    - nama customer
@@ -149,8 +149,9 @@ Manfaat:
 
 Contoh format:
 
-- `PRJ-001`
-- `PRJ-KITCHEN-2026`
+- `PRJ-0001`
+- `PRJ-0002`
+- `PRJ-0003`
 
 ### 4.3 Repeat Order Customer
 
@@ -305,7 +306,6 @@ Manfaat:
 2. Admin membuka menu `Projects`.
 3. Admin membuat project baru dengan memilih customer.
 4. Admin mengisi:
-   - ID Project
    - customer
    - nama
    - nomor HP
@@ -314,22 +314,23 @@ Manfaat:
    - bukti pembayaran dealing
    - status
    - catatan
-5. Setelah project dibuat, admin dapat membuka detail project.
-6. Dari detail project, admin dapat:
+5. Sistem membuat ID Project otomatis, misalnya `PRJ-0007`.
+6. Setelah project dibuat, admin dapat membuka detail project.
+7. Dari detail project, admin dapat:
    - melihat ringkasan project
    - menambah histori pembayaran
    - melihat bukti pembayaran
    - menghapus histori pembayaran
    - menuju form tambah progress
-7. Admin membuka menu `Progress` atau tombol `Tambah Progress`.
-8. Admin memilih project, lalu mengisi:
+8. Admin membuka menu `Progress` atau tombol `Tambah Progress`.
+9. Admin memilih project, lalu mengisi:
    - tanggal update
    - status
    - deskripsi
    - foto progress
-9. Sistem menyimpan progress ke project yang dipilih.
-10. Sistem mengirim email notifikasi ke customer terkait.
-11. Admin dapat mengedit atau menghapus progress jika diperlukan.
+10. Sistem menyimpan progress ke project yang dipilih.
+11. Sistem mengirim email notifikasi ke customer terkait.
+12. Admin dapat mengedit atau menghapus progress jika diperlukan.
 
 ### 5.2 Workflow Customer
 

@@ -34,11 +34,14 @@
 
                 <div class="mt-8 pm-form-grid">
                     <div class="pm-field">
-                        <label for="project_code" class="pm-label">ID Project</label>
-                        <input type="text" id="project_code" name="project_code" value="{{ old('project_code') }}" required class="pm-input" placeholder="PRJ-2026-001">
-                        @error('project_code')
-                            <p class="text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                        <span class="pm-label">ID Project</span>
+                        <div class="pm-input flex items-center justify-between gap-4 bg-stone-100 text-slate-700">
+                            <div>
+                                <p class="font-semibold">Dibuat otomatis oleh sistem</p>
+                                <p class="text-sm text-slate-500">Format akan mengikuti urutan project baru, misalnya `PRJ-0007`.</p>
+                            </div>
+                            <span class="rounded-full bg-stone-900 px-3 py-1 text-xs font-semibold tracking-[0.24em] text-stone-50">AUTO</span>
+                        </div>
                     </div>
 
                     <div class="pm-field">
@@ -155,7 +158,7 @@
                 <section class="pm-panel-muted pm-reveal pm-delay-2">
                     <p class="pm-kicker">Guideline</p>
                     <div class="mt-3 space-y-3 text-sm leading-7 text-slate-600">
-                        <p>Gunakan format ID project yang konsisten agar pencarian repeat order tetap cepat.</p>
+                        <p>ID project sekarang dibuat otomatis oleh sistem agar urutan project konsisten dan tidak bentrok.</p>
                         <p>Snapshot customer disimpan di project, jadi histori tetap aman walau data profil customer berubah.</p>
                         <p>Upload bukti dealing sejak awal supaya timeline pembayaran lengkap dari termin pertama.</p>
                     </div>

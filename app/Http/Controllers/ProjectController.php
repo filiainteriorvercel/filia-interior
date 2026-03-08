@@ -130,7 +130,7 @@ class ProjectController extends Controller
     {
         $this->ensureOwner();
 
-        $validated = $request->validate($this->rules($project->id));
+        $validated = $request->validate($this->rules());
 
         if ($proof = $this->handleProofUpload($request, 'deal_payment_proof', 'images/deal-payments')) {
             $this->deleteStoredAsset($project->deal_payment_proof);
@@ -175,15 +175,9 @@ class ProjectController extends Controller
         }
     }
 
-    private function rules(?int $projectId = null): array
+    private function rules(): array
     {
         return [
-            'project_code' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('projects', 'project_code')->ignore($projectId),
-            ],
             'user_id' => [
                 'required',
                 Rule::exists('users', 'id')->where(fn ($query) => $query->where('role', 'customer')),
