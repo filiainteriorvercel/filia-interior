@@ -13,7 +13,7 @@
                 </div>
 
                 <!-- Statistics Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                     <!-- Total Contacts -->
                     <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
                         <div class="flex items-center">
@@ -73,10 +73,41 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Total Projects -->
+                    <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
+                        <div class="flex items-center">
+                            <div class="p-2 bg-indigo-500 rounded-lg">
+                                <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-gray-700">Project Aktif</h3>
+                                <p class="text-2xl font-bold text-indigo-600">{{ $totalProjects }}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Manage Projects -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-lg transition duration-300">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Kelola Project</h3>
+                            <p class="text-gray-600 mb-4">{{ $totalProjects }} project tersimpan</p>
+                            <a href="{{ route('dashboard.projects.index') }}" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-300">
+                                Kelola Project
+                            </a>
+                        </div>
+                    </div>
+
                     <!-- Manage Progress -->
                     <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-lg transition duration-300">
                         <div class="text-center">

@@ -9,6 +9,7 @@ class ProgressUpdate extends Model
 {
     protected $fillable = [
         'user_id',
+        'project_id',
         'id_project',
         'foto',
         'deskripsi',
@@ -23,5 +24,10 @@ class ProgressUpdate extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class, 'project_id');
     }
 }

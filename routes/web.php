@@ -5,6 +5,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\ProgressController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectPaymentController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +24,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Progress resource routes
     Route::resource('progress', ProgressController::class);
+
+    // Project management routes
+    Route::resource('dashboard/projects', ProjectController::class, [
+        'names' => 'dashboard.projects'
+    ]);
+    Route::get('dashboard/projects/{project}/deal-proof', [ProjectController::class, 'showDealProof'])
+        ->name('dashboard.projects.deal-proof');
+    Route::post('dashboard/projects/{project}/payments', [ProjectPaymentController::class, 'store'])
+        ->name('dashboard.projects.payments.store');
+    Route::get('dashboard/projects/{project}/payments/{payment}/proof', [ProjectPaymentController::class, 'showProof'])
+        ->name('dashboard.projects.payments.proof');
+    Route::delete('dashboard/projects/{project}/payments/{payment}', [ProjectPaymentController::class, 'destroy'])
+        ->name('dashboard.projects.payments.destroy');
     
     // Portfolio resource routes
     Route::resource('dashboard/portfolios', PortfolioController::class, [

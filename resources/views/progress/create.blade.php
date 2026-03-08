@@ -1,149 +1,185 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Page Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center">
-                <a href="{{ route('progress.index') }}" class="mr-4 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                </a>
-                <div>
-                    <h2 class="font-heading text-2xl font-bold text-gray-900">
-                        Tambah Progress Update
-                    </h2>
-                    <p class="text-sm text-gray-600 mt-1">Buat progress update baru untuk customer</p>
+<div class="pm-shell">
+    <div class="pm-container max-w-[88rem]">
+        <section class="pm-hero pm-reveal">
+            <div class="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div class="max-w-3xl">
+                    <span class="pm-hero-chip">Add Progress Update</span>
+                    <h1 class="mt-4 font-heading text-5xl font-semibold leading-none text-stone-50 sm:text-6xl">
+                        Tambahkan update project dengan konteks customer yang langsung terbaca.
+                    </h1>
+                    <p class="mt-4 max-w-2xl text-sm leading-7 text-stone-200/88 sm:text-base">
+                        Pilih project, isi ringkasan progres, dan unggah foto bila diperlukan. Status project juga bisa langsung disesuaikan dari sini.
+                    </p>
                 </div>
+                <a href="{{ route('progress.index') }}" class="pm-btn pm-btn-ghost">Kembali ke Progress</a>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <div class="py-8">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                <form action="{{ route('progress.store') }}" method="POST" enctype="multipart/form-data" class="p-8">
-                    @csrf
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- Customer Selection -->
-                        <div class="md:col-span-2">
-                            <label for="user_id" class="block text-sm font-semibold text-gray-700 mb-3">Customer</label>
-                            <select name="user_id" id="user_id" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200">
-                                <option value="">Pilih Customer</option>
-                                @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}" {{ old('user_id') == $customer->id ? 'selected' : '' }}>
-                                        {{ $customer->name }} ({{ $customer->email }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('user_id')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+        <form action="{{ route('progress.store') }}" method="POST" enctype="multipart/form-data" class="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_360px]">
+            @csrf
 
-                        <!-- Project ID -->
-                        <div class="md:col-span-2">
-                            <label for="id_project" class="block text-sm font-semibold text-gray-700 mb-3">ID Project</label>
-                            <input type="text" name="id_project" id="id_project" value="{{ old('id_project') }}" required 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                                   placeholder="Contoh: PRJ-2025-001">
-                            @error('id_project')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+            <section class="pm-panel pm-reveal">
+                <div class="flex flex-col gap-2">
+                    <p class="pm-kicker">Input Progress</p>
+                    <h2 class="pm-section-title">Detail update project</h2>
+                </div>
 
-                        <!-- Tanggal Update -->
-                        <div>
-                            <label for="tanggal_update" class="block text-sm font-semibold text-gray-700 mb-3">Tanggal Update</label>
-                            <input type="date" name="tanggal_update" id="tanggal_update" value="{{ old('tanggal_update', date('Y-m-d')) }}" required
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200">
+                <div class="mt-8 space-y-6">
+                    <div class="pm-field">
+                        <label for="project_id" class="pm-label">Project</label>
+                        <select name="project_id" id="project_id" required class="pm-select">
+                            <option value="">Pilih Project</option>
+                            @foreach($projects as $project)
+                                <option
+                                    value="{{ $project->id }}"
+                                    data-project-code="{{ $project->project_code }}"
+                                    data-customer-code="{{ $project->user->customer_code ?? '-' }}"
+                                    data-customer-name="{{ $project->customer_name }}"
+                                    data-customer-email="{{ $project->customer_email }}"
+                                    {{ old('project_id', $selectedProjectId ?? '') == $project->id ? 'selected' : '' }}
+                                >
+                                    {{ $project->project_code }} - {{ $project->customer_name }} ({{ $project->user->customer_code ?? '-' }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('project_id')
+                            <p class="text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="pm-form-grid">
+                        <div class="pm-field">
+                            <label for="tanggal_update" class="pm-label">Tanggal Update</label>
+                            <input type="date" name="tanggal_update" id="tanggal_update" value="{{ old('tanggal_update', date('Y-m-d')) }}" required class="pm-input">
                             @error('tanggal_update')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Status -->
-                        <div>
-                            <label for="status" class="block text-sm font-semibold text-gray-700 mb-3">Status Project (Opsional)</label>
-                            <select name="status" id="status" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200">
+                        <div class="pm-field">
+                            <label for="status" class="pm-label">Status Project</label>
+                            <select name="status" id="status" class="pm-select">
                                 <option value="">Pilih Status</option>
                                 <option value="in_progress" {{ old('status') == 'in_progress' ? 'selected' : '' }}>Dalam Progress</option>
                                 <option value="completed" {{ old('status') == 'completed' ? 'selected' : '' }}>Selesai</option>
                                 <option value="on_hold" {{ old('status') == 'on_hold' ? 'selected' : '' }}>On Hold</option>
                             </select>
                             @error('status')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
+                    </div>
 
-                        <!-- Description -->
-                        <div class="md:col-span-2">
-                            <label for="deskripsi" class="block text-sm font-semibold text-gray-700 mb-3">Deskripsi Progress</label>
-                            <textarea name="deskripsi" id="deskripsi" rows="6" required 
-                                      class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                                      placeholder="Deskripsikan progress terkini dari project ini...">{{ old('deskripsi') }}</textarea>
-                            @error('deskripsi')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                    <div class="pm-field">
+                        <label for="deskripsi" class="pm-label">Deskripsi Progress</label>
+                        <textarea name="deskripsi" id="deskripsi" rows="7" required class="pm-textarea" placeholder="Deskripsikan progress terbaru project ini secara singkat dan jelas.">{{ old('deskripsi') }}</textarea>
+                        @error('deskripsi')
+                            <p class="text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                        <!-- Image Upload -->
-                        <div class="md:col-span-2">
-                            <label for="foto" class="block text-sm font-semibold text-gray-700 mb-3">Foto Progress (Opsional)</label>
-                            <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-400 transition-colors duration-200">
-                                <div class="space-y-4">
-                                    <div class="mx-auto w-16 h-16 gradient-bg rounded-xl flex items-center justify-center">
-                                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <input type="file" name="foto" id="foto" accept="image/*" class="hidden" onchange="previewImage(this)">
-                                        <label for="foto" class="cursor-pointer inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                                            </svg>
-                                            Upload Foto
-                                        </label>
-                                    </div>
-                                    <p class="text-sm text-gray-500">PNG, JPG, GIF hingga 2MB</p>
+                    <div class="pm-field">
+                        <label for="foto" class="pm-label">Foto Progress</label>
+                        <div class="pm-upload">
+                            <div class="space-y-4" id="uploadPlaceholder">
+                                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-900 text-stone-50">
+                                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
                                 </div>
-                                <div id="imagePreview" class="mt-4 hidden">
-                                    <img id="preview" class="mx-auto h-48 rounded-lg object-cover" alt="Preview">
+                                <div>
+                                    <input type="file" name="foto" id="foto" accept="image/*" class="hidden" onchange="previewImage(this)">
+                                    <label for="foto" class="pm-btn pm-btn-secondary cursor-pointer">Upload Foto</label>
                                 </div>
+                                <p class="text-sm text-slate-500">PNG, JPG, GIF hingga 2MB</p>
                             </div>
-                            @error('foto')
-                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                            <div id="imagePreview" class="hidden">
+                                <img id="preview" class="mx-auto max-h-80 rounded-[1.2rem] object-cover" alt="Preview">
+                            </div>
+                        </div>
+                        @error('foto')
+                            <p class="text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="mt-8 flex flex-col gap-3 border-t border-stone-200 pt-6 sm:flex-row sm:justify-end">
+                    <a href="{{ route('progress.index') }}" class="pm-btn pm-btn-secondary">Batal</a>
+                    <button type="submit" class="pm-btn pm-btn-primary">Simpan Progress</button>
+                </div>
+            </section>
+
+            <aside class="space-y-6">
+                <section class="pm-panel pm-reveal pm-delay-1">
+                    <p class="pm-kicker">Project Summary</p>
+                    <h2 class="mt-2 font-heading text-3xl font-semibold text-slate-800">Ringkasan customer</h2>
+                    <div class="mt-6 space-y-3" id="projectSummary">
+                        <div class="pm-meta-item">
+                            <p class="pm-meta-label">ID Project</p>
+                            <p class="pm-meta-value" id="summaryProjectCode">-</p>
+                        </div>
+                        <div class="pm-meta-item">
+                            <p class="pm-meta-label">ID Customer</p>
+                            <p class="pm-meta-value" id="summaryCustomerCode">-</p>
+                        </div>
+                        <div class="pm-meta-item">
+                            <p class="pm-meta-label">Nama Customer</p>
+                            <p class="pm-meta-value" id="summaryCustomerName">Pilih project terlebih dahulu</p>
+                        </div>
+                        <div class="pm-meta-item">
+                            <p class="pm-meta-label">Email Customer</p>
+                            <p class="pm-meta-value break-all" id="summaryCustomerEmail">-</p>
                         </div>
                     </div>
+                </section>
 
-                    <!-- Action Buttons -->
-                    <div class="flex items-center justify-end space-x-4 mt-8 pt-8 border-t border-gray-200">
-                        <a href="{{ route('progress.index') }}" class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors duration-200">
-                            Batal
-                        </a>
-                        <button type="submit" class="px-8 py-3 gradient-bg text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
-                            Simpan Progress
-                        </button>
+                <section class="pm-panel-muted pm-reveal pm-delay-2">
+                    <p class="pm-kicker">Tips</p>
+                    <div class="mt-3 space-y-3 text-sm leading-7 text-slate-600">
+                        <p>Gunakan deskripsi singkat namun konkret agar histori progress mudah dipahami customer.</p>
+                        <p>Jika status project berubah, ubah langsung dari form ini supaya dashboard project tetap sinkron.</p>
                     </div>
-                </form>
-            </div>
-        </div>
+                </section>
+            </aside>
+        </form>
     </div>
+</div>
 
-    <script>
-        function previewImage(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('imagePreview').classList.remove('hidden');
-                    document.getElementById('preview').src = e.target.result;
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-    </script>
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            document.getElementById('imagePreview').classList.remove('hidden');
+            document.getElementById('preview').src = event.target.result;
+            document.getElementById('uploadPlaceholder').classList.add('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+const projectSelect = document.getElementById('project_id');
+
+function renderProjectSummary() {
+    const selected = projectSelect.options[projectSelect.selectedIndex];
+    if (!selected || !selected.value) {
+        document.getElementById('summaryProjectCode').textContent = '-';
+        document.getElementById('summaryCustomerCode').textContent = '-';
+        document.getElementById('summaryCustomerName').textContent = 'Pilih project terlebih dahulu';
+        document.getElementById('summaryCustomerEmail').textContent = '-';
+        return;
+    }
+
+    document.getElementById('summaryProjectCode').textContent = selected.dataset.projectCode || '-';
+    document.getElementById('summaryCustomerCode').textContent = selected.dataset.customerCode || '-';
+    document.getElementById('summaryCustomerName').textContent = selected.dataset.customerName || '-';
+    document.getElementById('summaryCustomerEmail').textContent = selected.dataset.customerEmail || '-';
+}
+
+projectSelect.addEventListener('change', renderProjectSummary);
+renderProjectSummary();
+</script>
 @endsection

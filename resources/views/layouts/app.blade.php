@@ -7,31 +7,16 @@
 
         <title>{{ config('app.name', 'Filia Interior') }}</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800&display=swap" rel="stylesheet" />
-
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
-            
-            .font-heading { font-family: 'Playfair Display', serif; }
-            .font-body { font-family: 'Inter', sans-serif; }
-            
-            .gradient-bg {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            }
-        </style>
     </head>
-    <body class="font-body antialiased">
-        <div class="min-h-screen bg-gray-50">
+    <body class="font-body antialiased text-slate-800">
+        <div class="min-h-screen bg-transparent">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
             @isset($header)
-                <header class="bg-white shadow-sm border-b border-gray-200">
+                <header class="border-b border-white/50 bg-white/70 shadow-sm backdrop-blur-md">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>

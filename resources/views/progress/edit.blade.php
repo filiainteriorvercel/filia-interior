@@ -1,170 +1,155 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-12">
-    <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6 text-gray-900">
-                <div class="mb-6">
-                    <h1 class="text-2xl font-bold text-gray-900">Edit Progress Update</h1>
-                    <p class="text-gray-600 mt-2">Update informasi progress untuk project {{ $progress->id_project }}</p>
+<div class="pm-shell">
+    <div class="pm-container max-w-[88rem]">
+        <section class="pm-hero pm-reveal">
+            <div class="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div class="max-w-3xl">
+                    <span class="pm-hero-chip">Edit Progress</span>
+                    <h1 class="mt-4 font-heading text-5xl font-semibold leading-none text-stone-50 sm:text-6xl">
+                        Sesuaikan update project tanpa kehilangan konteks histori sebelumnya.
+                    </h1>
+                    <p class="mt-4 max-w-2xl text-sm leading-7 text-stone-200/88 sm:text-base">
+                        Anda dapat mengganti project, memperbarui deskripsi, menyesuaikan status, dan menambah foto progress baru dari halaman ini.
+                    </p>
+                </div>
+                <a href="{{ route('progress.index') }}" class="pm-btn pm-btn-ghost">Kembali ke Progress</a>
+            </div>
+        </section>
+
+        <form method="POST" action="{{ route('progress.update', $progress) }}" enctype="multipart/form-data" class="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_360px]">
+            @csrf
+            @method('PUT')
+
+            <section class="pm-panel pm-reveal">
+                <div class="flex flex-col gap-2">
+                    <p class="pm-kicker">Edit Update</p>
+                    <h2 class="pm-section-title">Detail progress</h2>
                 </div>
 
-                <form method="POST" action="{{ route('progress.update', $progress) }}" enctype="multipart/form-data" class="space-y-6">
-                    @csrf
-                    @method('PUT')
-
-                    <!-- Customer Selection -->
-                    <div>
-                        <label for="user_id" class="block text-sm font-medium text-gray-700 mb-2">
-                            Customer <span class="text-red-500">*</span>
-                        </label>
-                        <select id="user_id" name="user_id" required 
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('user_id') border-red-500 @enderror">
-                            <option value="">Pilih Customer</option>
-                            @foreach($customers as $customer)
-                                <option value="{{ $customer->id }}" 
-                                        {{ (old('user_id') ?? $progress->user_id) == $customer->id ? 'selected' : '' }}>
-                                    {{ $customer->name }}
+                <div class="mt-8 space-y-6">
+                    <div class="pm-field">
+                        <label for="project_id" class="pm-label">Project</label>
+                        <select id="project_id" name="project_id" required class="pm-select">
+                            <option value="">Pilih Project</option>
+                            @foreach($projects as $projectItem)
+                                <option
+                                    value="{{ $projectItem->id }}"
+                                    data-project-code="{{ $projectItem->project_code }}"
+                                    data-customer-code="{{ $projectItem->user->customer_code ?? '-' }}"
+                                    data-customer-name="{{ $projectItem->customer_name }}"
+                                    data-customer-email="{{ $projectItem->customer_email }}"
+                                    {{ (old('project_id') ?? $progress->project_id) == $projectItem->id ? 'selected' : '' }}
+                                >
+                                    {{ $projectItem->project_code }} - {{ $projectItem->customer_name }} ({{ $projectItem->user->customer_code ?? '-' }})
                                 </option>
                             @endforeach
                         </select>
-                        @error('user_id')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @error('project_id')
+                            <p class="text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <!-- Project ID -->
-                    <div>
-                        <label for="id_project" class="block text-sm font-medium text-gray-700 mb-2">
-                            ID Project <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" id="id_project" name="id_project" 
-                               value="{{ old('id_project') ?? $progress->id_project }}" required
-                               placeholder="Masukkan ID project (contoh: INT-2024-001)"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('id_project') border-red-500 @enderror">
-                        @error('id_project')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+                    <div class="pm-form-grid">
+                        <div class="pm-field">
+                            <label for="tanggal_update" class="pm-label">Tanggal Update</label>
+                            <input type="date" id="tanggal_update" name="tanggal_update" value="{{ old('tanggal_update') ?? $progress->tanggal_update->format('Y-m-d') }}" required class="pm-input">
+                            @error('tanggal_update')
+                                <p class="text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="pm-field">
+                            <label for="status" class="pm-label">Status Progress</label>
+                            <select id="status" name="status" class="pm-select">
+                                <option value="">Pilih Status</option>
+                                <option value="in_progress" {{ (old('status') ?? $progress->status) == 'in_progress' ? 'selected' : '' }}>Dalam Progress</option>
+                                <option value="completed" {{ (old('status') ?? $progress->status) == 'completed' ? 'selected' : '' }}>Selesai</option>
+                                <option value="on_hold" {{ (old('status') ?? $progress->status) == 'on_hold' ? 'selected' : '' }}>On Hold</option>
+                            </select>
+                            @error('status')
+                                <p class="text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
-                    <!-- Update Date -->
-                    <div>
-                        <label for="tanggal_update" class="block text-sm font-medium text-gray-700 mb-2">
-                            Tanggal Update <span class="text-red-500">*</span>
-                        </label>
-                        <input type="date" id="tanggal_update" name="tanggal_update" 
-                               value="{{ old('tanggal_update') ?? $progress->tanggal_update->format('Y-m-d') }}" required
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('tanggal_update') border-red-500 @enderror">
-                        @error('tanggal_update')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-
-                    <!-- Description -->
-                    <div>
-                        <label for="deskripsi" class="block text-sm font-medium text-gray-700 mb-2">
-                            Deskripsi Progress <span class="text-red-500">*</span>
-                        </label>
-                        <textarea id="deskripsi" name="deskripsi" rows="5" required
-                                  placeholder="Jelaskan detail progress yang telah dicapai..."
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('deskripsi') border-red-500 @enderror">{{ old('deskripsi') ?? $progress->deskripsi }}</textarea>
+                    <div class="pm-field">
+                        <label for="deskripsi" class="pm-label">Deskripsi Progress</label>
+                        <textarea id="deskripsi" name="deskripsi" rows="7" required class="pm-textarea">{{ old('deskripsi') ?? $progress->deskripsi }}</textarea>
                         @error('deskripsi')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <p class="text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <!-- Status -->
-                    <div>
-                        <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
-                            Status Progress
-                        </label>
-                        <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 @error('status') border-red-500 @enderror">
-                            <option value="">Pilih Status</option>
-                            <option value="in_progress" {{ (old('status') ?? $progress->status) == 'in_progress' ? 'selected' : '' }}>Dalam Progress</option>
-                            <option value="completed" {{ (old('status') ?? $progress->status) == 'completed' ? 'selected' : '' }}>Selesai</option>
-                            <option value="on_hold" {{ (old('status') ?? $progress->status) == 'on_hold' ? 'selected' : '' }}>On Hold</option>
-                        </select>
-                        @error('status')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Current Photo Display -->
-                    @php
-                        use Illuminate\Support\Facades\Storage;
-                        $fotoPath = $progress->foto;
-                        $fotoExists = $fotoPath && (\Illuminate\Support\Str::startsWith($fotoPath, 'images/')
-                            ? file_exists(public_path($fotoPath))
-                            : Storage::disk('public')->exists($fotoPath));
-                    @endphp
-                    @if($fotoExists)
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Foto Saat Ini
-                            </label>
-                            <div class="mb-4">
-                                <img src="{{ \Illuminate\Support\Str::startsWith($fotoPath, 'images/') ? asset($fotoPath) : asset('storage/' . $fotoPath) }}" alt="Current Progress Photo" 
-                                     class="h-48 w-full object-cover rounded-lg border border-gray-200">
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- Photo Upload -->
-                    <div>
-                        <label for="foto" class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ $progress->foto ? 'Ganti Foto Progress' : 'Foto Progress' }}
-                        </label>
-                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition duration-300">
-                            <div class="space-y-1 text-center">
-                                <svg id="upload-icon" class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                                <div class="flex text-sm text-gray-600">
-                                    <label for="foto" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                                        <span>Upload file</span>
-                                        <input id="foto" name="foto" type="file" accept="image/*" class="sr-only" onchange="previewImage(this)">
-                                    </label>
-                                    <p class="pl-1">atau drag and drop</p>
+                    <div class="pm-field">
+                        <label for="foto" class="pm-label">{{ $progress->foto ? 'Ganti Foto Progress' : 'Foto Progress' }}</label>
+                        <div class="pm-upload">
+                            <div class="space-y-4" id="uploadPlaceholder">
+                                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-900 text-stone-50">
+                                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
                                 </div>
-                                <p class="text-xs text-gray-500">PNG, JPG, GIF hingga 10MB</p>
-                                @if($progress->foto)
-                                    <p class="text-xs text-blue-600">Kosongkan jika tidak ingin mengubah foto</p>
-                                @endif
+                                <div>
+                                    <input id="foto" name="foto" type="file" accept="image/*" class="hidden" onchange="previewImage(this)">
+                                    <label for="foto" class="pm-btn pm-btn-secondary cursor-pointer">Upload Foto Baru</label>
+                                </div>
+                                <p class="text-sm text-slate-500">Kosongkan jika tidak ingin mengganti foto.</p>
+                            </div>
+
+                            <div id="image-preview" class="hidden">
+                                <img id="preview-img" src="" alt="Preview" class="mx-auto max-h-80 rounded-[1.2rem] object-cover">
+                                <button type="button" onclick="removeImage()" class="pm-link mt-4">Hapus Foto Baru</button>
                             </div>
                         </div>
-                        
-                        <!-- Image Preview -->
-                        <div id="image-preview" class="mt-4 hidden">
-                            <img id="preview-img" src="" alt="Preview" class="h-48 w-full object-cover rounded-lg">
-                            <button type="button" onclick="removeImage()" class="mt-2 text-red-600 hover:text-red-700 text-sm font-medium">
-                                Hapus Foto Baru
-                            </button>
-                        </div>
-                        
+
                         @error('foto')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <p class="text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex justify-between pt-6">
-                        <a href="{{ route('progress.index') }}" 
-                           class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-300">
-                            Batal
-                        </a>
-                        <button type="submit" 
-                                class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300 inline-flex items-center">
-                            <svg class="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                            </svg>
-                            Update Progress
-                        </button>
+                <div class="mt-8 flex flex-col gap-3 border-t border-stone-200 pt-6 sm:flex-row sm:justify-end">
+                    <a href="{{ route('progress.index') }}" class="pm-btn pm-btn-secondary">Batal</a>
+                    <button type="submit" class="pm-btn pm-btn-primary">Update Progress</button>
+                </div>
+            </section>
+
+            <aside class="space-y-6">
+                <section class="pm-panel pm-reveal pm-delay-1">
+                    <p class="pm-kicker">Ringkasan Project</p>
+                    <h2 class="mt-2 font-heading text-3xl font-semibold text-slate-800">Konteks customer</h2>
+                    <div class="mt-6 space-y-3" id="projectSummary">
+                        <div class="pm-meta-item">
+                            <p class="pm-meta-label">ID Project</p>
+                            <p class="pm-meta-value" id="summaryProjectCode">{{ $progress->id_project }}</p>
+                        </div>
+                        <div class="pm-meta-item">
+                            <p class="pm-meta-label">ID Customer</p>
+                            <p class="pm-meta-value" id="summaryCustomerCode">{{ $progress->project->user->customer_code ?? '-' }}</p>
+                        </div>
+                        <div class="pm-meta-item">
+                            <p class="pm-meta-label">Nama Customer</p>
+                            <p class="pm-meta-value" id="summaryCustomerName">{{ $progress->project->customer_name ?? '-' }}</p>
+                        </div>
+                        <div class="pm-meta-item">
+                            <p class="pm-meta-label">Email Customer</p>
+                            <p class="pm-meta-value break-all" id="summaryCustomerEmail">{{ $progress->project->customer_email ?? '-' }}</p>
+                        </div>
                     </div>
-                </form>
-            </div>
-        </div>
+                </section>
+
+                @if($progress->foto)
+                    <section class="pm-panel-muted pm-reveal pm-delay-2">
+                        <p class="pm-kicker">Foto Saat Ini</p>
+                        <div class="mt-4 overflow-hidden rounded-[1.3rem] border border-stone-200 bg-white">
+                            <img src="{{ str_starts_with($progress->foto, 'data:') ? $progress->foto : asset($progress->foto) }}" alt="Current Progress Photo" class="h-72 w-full object-cover">
+                        </div>
+                    </section>
+                @endif
+            </aside>
+        </form>
     </div>
 </div>
 
@@ -173,10 +158,10 @@ function previewImage(input) {
     const file = input.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('preview-img').src = e.target.result;
+        reader.onload = function(event) {
+            document.getElementById('preview-img').src = event.target.result;
             document.getElementById('image-preview').classList.remove('hidden');
-            document.getElementById('upload-icon').parentElement.parentElement.classList.add('hidden');
+            document.getElementById('uploadPlaceholder').classList.add('hidden');
         };
         reader.readAsDataURL(file);
     }
@@ -185,32 +170,24 @@ function previewImage(input) {
 function removeImage() {
     document.getElementById('foto').value = '';
     document.getElementById('image-preview').classList.add('hidden');
-    document.getElementById('upload-icon').parentElement.parentElement.classList.remove('hidden');
+    document.getElementById('uploadPlaceholder').classList.remove('hidden');
 }
 
-// Drag and Drop functionality
-const dropZone = document.querySelector('.border-dashed');
-const fileInput = document.getElementById('foto');
+const projectSelect = document.getElementById('project_id');
 
-dropZone.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    this.classList.add('border-indigo-500', 'bg-indigo-50');
-});
-
-dropZone.addEventListener('dragleave', function(e) {
-    e.preventDefault();
-    this.classList.remove('border-indigo-500', 'bg-indigo-50');
-});
-
-dropZone.addEventListener('drop', function(e) {
-    e.preventDefault();
-    this.classList.remove('border-indigo-500', 'bg-indigo-50');
-    
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-        fileInput.files = files;
-        previewImage(fileInput);
+function renderProjectSummary() {
+    const selected = projectSelect.options[projectSelect.selectedIndex];
+    if (!selected || !selected.value) {
+        return;
     }
-});
+
+    document.getElementById('summaryProjectCode').textContent = selected.dataset.projectCode || '-';
+    document.getElementById('summaryCustomerCode').textContent = selected.dataset.customerCode || '-';
+    document.getElementById('summaryCustomerName').textContent = selected.dataset.customerName || '-';
+    document.getElementById('summaryCustomerEmail').textContent = selected.dataset.customerEmail || '-';
+}
+
+projectSelect.addEventListener('change', renderProjectSummary);
+renderProjectSummary();
 </script>
 @endsection

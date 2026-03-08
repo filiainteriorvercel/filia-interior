@@ -14,6 +14,7 @@ class UserSeeder extends Seeder
         User::create([
             'name' => 'Filia Interior',
             'email' => 'filiainterior@gmail.com',
+            'phone' => '081200000001',
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
             'role' => 'owner',
@@ -23,6 +24,7 @@ class UserSeeder extends Seeder
         User::create([
             'name' => 'Customer 1',
             'email' => 'customer1@gmail.com',
+            'phone' => '081200000101',
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
             'role' => 'customer',
@@ -31,6 +33,7 @@ class UserSeeder extends Seeder
         User::create([
             'name' => 'Customer 2',
             'email' => 'customer2@gmail.com',
+            'phone' => '081200000102',
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
             'role' => 'customer',

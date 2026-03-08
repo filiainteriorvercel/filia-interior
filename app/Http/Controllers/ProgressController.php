@@ -2,89 +2,106 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\ProgressUpdate;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 use App\Mail\ProgressUpdateNotification;
+use App\Models\ProgressUpdate;
+use App\Models\Project;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ProgressController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
-        
+        $search = '';
+
         if ($user->role === 'owner') {
-            // Owner can see all progress
-            $progressUpdates = ProgressUpdate::with('user')->latest()->get();
+            $search = trim((string) $request->get('q', ''));
+
+            $query = ProgressUpdate::with(['user', 'project.user'])->latest();
+
+            if ($search !== '') {
+                $query->where(function ($builder) use ($search) {
+                    $builder->where('id_project', 'like', "%{$search}%")
+                        ->orWhere('deskripsi', 'like', "%{$search}%")
+                        ->orWhereHas('project', function ($projectQuery) use ($search) {
+                            $projectQuery->where('project_code', 'like', "%{$search}%")
+                                ->orWhere('customer_name', 'like', "%{$search}%")
+                                ->orWhere('customer_phone', 'like', "%{$search}%")
+                                ->orWhere('customer_email', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('user', function ($userQuery) use ($search) {
+                            $userQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere('customer_code', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%");
+                        });
+                });
+            }
+
+            $progressUpdates = $query->get();
         } else {
-            // Customer can only see their own progress
-            $progressUpdates = ProgressUpdate::where('user_id', $user->id)->latest()->get();
+            $progressUpdates = ProgressUpdate::with('project')
+                ->where('user_id', $user->id)
+                ->latest()
+                ->get();
         }
 
-        return view('progress.index', compact('progressUpdates'));
+        return view('progress.index', compact('progressUpdates', 'search'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        // Only owner can create progress updates
         if (Auth::user()->role !== 'owner') {
             abort(403, 'Unauthorized');
         }
 
-        $customers = User::where('role', 'customer')->get();
-        return view('progress.create', compact('customers'));
+        $projects = Project::with('user')->latest()->get();
+        $selectedProjectId = $request->integer('project_id') ?: null;
+
+        if ($selectedProjectId !== null && ! $projects->contains('id', $selectedProjectId)) {
+            $selectedProjectId = null;
+        }
+
+        return view('progress.create', compact('projects', 'selectedProjectId'));
     }
 
     public function store(Request $request)
     {
-        // Only owner can create progress updates
         if (Auth::user()->role !== 'owner') {
             abort(403, 'Unauthorized');
         }
 
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'id_project' => 'required|string|max:255',
+            'project_id' => 'required|exists:projects,id',
             'deskripsi' => 'required|string',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'tanggal_update' => 'required|date',
             'status' => 'nullable|string|in:in_progress,completed,on_hold',
         ]);
 
-        if ($request->hasFile('foto')) {
-            $foto = $request->file('foto');
-            $filename = 'progress_' . time() . '.' . $foto->getClientOriginalExtension();
-            
-            // Check if running on Vercel (serverless) - filesystem is read-only
-            $isVercel = env('VERCEL_ENV') !== null || !is_writable(public_path('images/progress'));
-            
-            if ($isVercel) {
-                // Serverless environment: Store image as base64 in database
-                $imageData = base64_encode(file_get_contents($foto->getRealPath()));
-                $mimeType = $foto->getMimeType();
-                $validated['foto'] = 'data:' . $mimeType . ';base64,' . $imageData;
-            } else {
-                // Local environment: Store in public directory
-                $uploadPath = public_path('images/progress');
-                if (!file_exists($uploadPath)) {
-                    mkdir($uploadPath, 0755, true);
-                }
-                $foto->move($uploadPath, $filename);
-                $validated['foto'] = 'images/progress/' . $filename;
-            }
+        $project = Project::findOrFail($validated['project_id']);
+        $validated['user_id'] = $project->user_id;
+        $validated['id_project'] = $project->project_code;
+        if (! empty($validated['status'])) {
+            $project->update(['status' => $validated['status']]);
+        }
+
+        if ($uploadedFoto = $this->uploadImage($request, 'foto', 'images/progress', 'progress')) {
+            $validated['foto'] = $uploadedFoto;
         }
 
         $progressUpdate = ProgressUpdate::create($validated);
 
-        // Kirim email notifikasi ke customer
-        $customer = User::find($validated['user_id']);
+        $customer = User::find($project->user_id);
         if ($customer && $customer->email) {
             try {
                 Mail::to($customer->email)->send(new ProgressUpdateNotification($progressUpdate, $customer->name));
             } catch (\Exception $e) {
-                \Log::error('Failed to send progress update email: ' . $e->getMessage());
+                Log::error('Failed to send progress update email: ' . $e->getMessage());
             }
         }
 
@@ -94,80 +111,62 @@ class ProgressController extends Controller
     public function show(ProgressUpdate $progress)
     {
         $user = Auth::user();
-        
-        // Check authorization
-        if ($user->role !== 'owner' && $progress->user_id !== $user->id) {
+
+        $belongsToUser = $progress->user_id === $user->id
+            || ($progress->project && $progress->project->user_id === $user->id);
+
+        if ($user->role !== 'owner' && ! $belongsToUser) {
             abort(403, 'Unauthorized');
         }
 
+        $progress->load('project.user');
         return view('progress.show', compact('progress'));
     }
 
     public function edit(ProgressUpdate $progress)
     {
-        // Only owner can edit progress
         if (Auth::user()->role !== 'owner') {
             abort(403, 'Unauthorized');
         }
 
-        $customers = User::where('role', 'customer')->get();
-        return view('progress.edit', compact('progress', 'customers'));
+        $projects = Project::with('user')->latest()->get();
+        return view('progress.edit', compact('progress', 'projects'));
     }
 
     public function update(Request $request, ProgressUpdate $progress)
     {
-        // Only owner can update progress
         if (Auth::user()->role !== 'owner') {
             abort(403, 'Unauthorized');
         }
 
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'id_project' => 'required|string|max:255',
+            'project_id' => 'required|exists:projects,id',
             'deskripsi' => 'required|string',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'tanggal_update' => 'required|date',
             'status' => 'nullable|string|in:in_progress,completed,on_hold',
         ]);
 
-        if ($request->hasFile('foto')) {
-            $foto = $request->file('foto');
-            $filename = 'progress_' . time() . '.' . $foto->getClientOriginalExtension();
-            
-            // Check if running on Vercel (serverless) - filesystem is read-only
-            $isVercel = env('VERCEL_ENV') !== null || !is_writable(public_path('images/progress'));
-            
-            if ($isVercel) {
-                // Serverless environment: Store image as base64 in database
-                // No need to delete old photo (it's stored in database)
-                $imageData = base64_encode(file_get_contents($foto->getRealPath()));
-                $mimeType = $foto->getMimeType();
-                $validated['foto'] = 'data:' . $mimeType . ';base64,' . $imageData;
-            } else {
-                // Local environment: Store in public directory
-                // Delete old photo if it exists and is a file (not base64)
-                if ($progress->foto && !str_starts_with($progress->foto, 'data:') && file_exists(public_path($progress->foto))) {
-                    unlink(public_path($progress->foto));
-                }
-                
-                $uploadPath = public_path('images/progress');
-                if (!file_exists($uploadPath)) {
-                    mkdir($uploadPath, 0755, true);
-                }
-                $foto->move($uploadPath, $filename);
-                $validated['foto'] = 'images/progress/' . $filename;
-            }
+        $project = Project::findOrFail($validated['project_id']);
+        $validated['user_id'] = $project->user_id;
+        $validated['id_project'] = $project->project_code;
+        if (! empty($validated['status'])) {
+            $project->update(['status' => $validated['status']]);
+        }
+
+        if ($uploadedFoto = $this->uploadImage($request, 'foto', 'images/progress', 'progress')) {
+            $this->deleteLocalAsset($progress->foto);
+            $validated['foto'] = $uploadedFoto;
         }
 
         $progress->update($validated);
 
-        // Kirim email notifikasi ke customer
-        $customer = User::find($validated['user_id']);
+        $customer = User::find($project->user_id);
         if ($customer && $customer->email) {
             try {
                 Mail::to($customer->email)->send(new ProgressUpdateNotification($progress, $customer->name));
             } catch (\Exception $e) {
-                \Log::error('Failed to send progress update email: ' . $e->getMessage());
+                Log::error('Failed to send progress update email: ' . $e->getMessage());
             }
         }
 
@@ -176,19 +175,57 @@ class ProgressController extends Controller
 
     public function destroy(ProgressUpdate $progress)
     {
-        // Only owner can delete progress
         if (Auth::user()->role !== 'owner') {
             abort(403, 'Unauthorized');
         }
 
-        // Delete photo file only if it's stored as file (not base64)
-        // Base64 images are stored in database, so no file to delete
-        if ($progress->foto && !str_starts_with($progress->foto, 'data:') && file_exists(public_path($progress->foto))) {
-            unlink(public_path($progress->foto));
-        }
+        $this->deleteLocalAsset($progress->foto);
 
         $progress->delete();
 
         return redirect()->route('progress.index')->with('success', 'Progress update berhasil dihapus!');
+    }
+
+    private function uploadImage(Request $request, string $field, string $folder, string $filenamePrefix): ?string
+    {
+        if (! $request->hasFile($field)) {
+            return null;
+        }
+
+        $file = $request->file($field);
+        $filename = $filenamePrefix . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $uploadPath = public_path($folder);
+        $useBase64Fallback = env('VERCEL_ENV') !== null;
+
+        if (! $useBase64Fallback) {
+            if (! file_exists($uploadPath) && ! mkdir($uploadPath, 0755, true) && ! is_dir($uploadPath)) {
+                $useBase64Fallback = true;
+            } elseif (! is_writable($uploadPath)) {
+                $useBase64Fallback = true;
+            }
+        }
+
+        if ($useBase64Fallback) {
+            $imageData = base64_encode(file_get_contents($file->getRealPath()));
+            $mimeType = $file->getMimeType();
+
+            return 'data:' . $mimeType . ';base64,' . $imageData;
+        }
+
+        $file->move($uploadPath, $filename);
+
+        return $folder . '/' . $filename;
+    }
+
+    private function deleteLocalAsset(?string $path): void
+    {
+        if (! $path || str_starts_with($path, 'data:')) {
+            return;
+        }
+
+        $fullPath = public_path($path);
+        if (file_exists($fullPath)) {
+            unlink($fullPath);
+        }
     }
 }

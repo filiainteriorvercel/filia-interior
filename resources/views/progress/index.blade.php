@@ -1,230 +1,239 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Page Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="font-heading text-2xl font-bold text-gray-900">
-                        Progress Update
-                    </h2>
-                    <p class="text-sm text-gray-600 mt-1">
+@php
+    $progressCount = $progressUpdates->count();
+    $completedCount = $progressUpdates->where('status', 'completed')->count();
+    $inProgressCount = $progressUpdates->where('status', 'in_progress')->count();
+@endphp
+
+<div class="pm-shell">
+    <div class="pm-container">
+        <section class="pm-hero pm-reveal">
+            <div class="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div class="max-w-3xl">
+                    <span class="pm-hero-chip">Progress Monitor</span>
+                    <h1 class="mt-4 font-heading text-5xl font-semibold leading-none text-stone-50 sm:text-6xl">
+                        Progress update yang lebih mudah dibaca, dicari, dan dipresentasikan.
+                    </h1>
+                    <p class="mt-4 max-w-2xl text-sm leading-7 text-stone-200/88 sm:text-base">
                         @if(Auth::user()->role === 'owner')
-                            Kelola progress semua project pelanggan
+                            Pantau seluruh update project pelanggan dan lompat cepat ke project yang perlu ditindak.
                         @else
-                            Lihat progress project Anda
+                            Lihat seluruh perkembangan project Anda dalam tampilan timeline yang lebih jelas.
                         @endif
                     </p>
                 </div>
                 @if(Auth::user()->role === 'owner')
-                    <a href="{{ route('progress.create') }}" class="inline-flex items-center px-6 py-3 gradient-bg text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    <a href="{{ route('progress.create') }}" class="pm-btn pm-btn-primary">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
                         Tambah Progress
                     </a>
                 @endif
             </div>
-        </div>
-    </div>
+        </section>
 
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @if(session('success'))
-                <div class="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl">
-                    {{ session('success') }}
+        <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div class="pm-stat-card pm-reveal pm-delay-1">
+                <p class="pm-stat-label">Total Update</p>
+                <p class="pm-stat-value">{{ $progressCount }}</p>
+                <p class="pm-stat-meta">Semua progress yang sedang tampil.</p>
+            </div>
+            <div class="pm-stat-card pm-reveal pm-delay-2">
+                <p class="pm-stat-label">Sedang Berjalan</p>
+                <p class="pm-stat-value">{{ $inProgressCount }}</p>
+                <p class="pm-stat-meta">Project yang masih aktif di halaman ini.</p>
+            </div>
+            <div class="pm-stat-card pm-reveal pm-delay-3">
+                <p class="pm-stat-label">Selesai</p>
+                <p class="pm-stat-value">{{ $completedCount }}</p>
+                <p class="pm-stat-meta">Update yang sudah berstatus selesai.</p>
+            </div>
+        </section>
+
+        @if(session('success'))
+            <div class="pm-notice-success pm-reveal">{{ session('success') }}</div>
+        @endif
+
+        @if(Auth::user()->role === 'owner')
+            <section class="pm-panel pm-reveal">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <p class="pm-kicker">Search</p>
+                        <h2 class="mt-2 font-heading text-3xl font-semibold text-slate-800">Temukan update yang relevan</h2>
+                    </div>
+                    <form method="GET" action="{{ route('progress.index') }}" class="w-full max-w-3xl">
+                        <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                            <div class="relative">
+                                <svg class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.65a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" />
+                                </svg>
+                                <input
+                                    type="text"
+                                    name="q"
+                                    value="{{ $search ?? '' }}"
+                                    placeholder="Cari ID project, customer, email, nomor HP, atau deskripsi progress"
+                                    class="pm-input pl-12"
+                                >
+                            </div>
+                            <button type="submit" class="pm-btn pm-btn-primary w-full sm:w-auto">Cari</button>
+                        </div>
+                    </form>
                 </div>
-            @endif
+            </section>
+        @endif
 
-            @if(isset($progressUpdates) && $progressUpdates->count() > 0)
-                <div class="grid gap-6">
-                    @foreach($progressUpdates as $progress)
-                        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
-                            <div class="md:flex">
-                                <!-- Image Section -->
-                                <div class="md:w-1/3">
-                                    @if($progress->foto && $progress->foto !== '')
-                                        <img src="{{ str_starts_with($progress->foto, 'data:') ? $progress->foto : asset($progress->foto) }}" alt="Progress Update" class="w-full h-64 md:h-full object-cover">
-                                    @else
-                                        <div class="w-full h-64 md:h-full gradient-bg flex items-center justify-center">
-                                            <svg class="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
+        @if($progressUpdates->count() > 0)
+            <section class="grid gap-5 xl:grid-cols-2">
+                @foreach($progressUpdates as $progress)
+                    @php
+                        $statusClass = match ($progress->status) {
+                            'completed' => 'pm-badge pm-badge-success',
+                            'on_hold' => 'pm-badge pm-badge-hold',
+                            default => 'pm-badge pm-badge-progress',
+                        };
+                        $statusLabel = $progress->status ? ucwords(str_replace('_', ' ', $progress->status)) : 'Update';
+                    @endphp
+                    <article class="pm-data-card pm-reveal" style="animation-delay: {{ 0.06 * $loop->index }}s;">
+                        <div class="flex h-full flex-col gap-5">
+                            @if($progress->foto && $progress->foto !== '')
+                                <button type="button" onclick="viewProgress({{ $progress->id }})" class="block overflow-hidden rounded-[1.4rem]">
+                                    <img src="{{ str_starts_with($progress->foto, 'data:') ? $progress->foto : asset($progress->foto) }}" alt="Progress Update" class="h-60 w-full object-cover">
+                                </button>
+                            @else
+                                <div class="flex h-60 items-center justify-center rounded-[1.4rem] bg-gradient-to-br from-stone-900 to-slate-700 text-stone-50">
+                                    <svg class="h-14 w-14 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                            @endif
+
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <p class="pm-kicker">Project {{ $progress->id_project }}</p>
+                                    @if(Auth::user()->role === 'owner' && $progress->user)
+                                        <p class="mt-2 text-sm text-slate-600">Customer: {{ $progress->user->name }}</p>
                                     @endif
                                 </div>
+                                <span class="{{ $statusClass }}">{{ $statusLabel }}</span>
+                            </div>
 
-                                <!-- Content Section -->
-                                <div class="md:w-2/3 p-6">
-                                    <div class="flex justify-between items-start mb-4">
-                                        <div>
-                                            <h3 class="text-xl font-heading font-bold text-gray-900 mb-2">
-                                                Project: {{ $progress->id_project }}
-                                            </h3>
-                                            @if(Auth::user()->role === 'owner' && $progress->user)
-                                                <p class="text-sm text-gray-600">Customer: {{ $progress->user->name }}</p>
-                                            @endif
-                                        </div>
-                                        
-                                        @if($progress->status)
-                                            <div class="flex items-center space-x-2">
-                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                                                    @if($progress->status === 'completed') bg-green-100 text-green-800
-                                                    @elseif($progress->status === 'in_progress') bg-blue-100 text-blue-800  
-                                                    @else bg-yellow-100 text-yellow-800
-                                                    @endif">
-                                                    @if($progress->status === 'completed') Selesai
-                                                    @elseif($progress->status === 'in_progress') Dalam Progress
-                                                    @else On Hold
-                                                    @endif
-                                                </span>
-                                            </div>
-                                        @endif
-                                    </div>
+                            <p class="text-sm leading-7 text-slate-600">{{ $progress->deskripsi }}</p>
 
-                                    <p class="text-gray-700 mb-4 line-clamp-3">{{ $progress->deskripsi }}</p>
-                                    
-                                    <div class="flex items-center justify-between">
-                                        <div class="text-sm text-gray-500">
-                                            <time>{{ $progress->tanggal_update->format('d M Y') }}</time>
-                                        </div>
+                            <div class="mt-auto flex flex-col gap-3 border-t border-stone-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                                <time class="text-sm font-semibold text-slate-500">{{ $progress->tanggal_update->format('d M Y') }}</time>
 
-                                        <div class="flex items-center space-x-3">
-                                            <button onclick="viewProgress({{ $progress->id }})" class="text-indigo-600 hover:text-indigo-700 font-medium text-sm">
-                                                Lihat Detail
-                                            </button>
-                                            
-                                            @if(Auth::user()->role === 'owner')
-                                                <a href="{{ route('progress.edit', $progress) }}" class="text-blue-600 hover:text-blue-700">
-                                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                </a>
-                                                
-                                                <form method="POST" action="{{ route('progress.destroy', $progress) }}" class="inline" onsubmit="return confirm('Yakin ingin menghapus progress ini?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-700">
-                                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
-                                    </div>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <button type="button" onclick="viewProgress({{ $progress->id }})" class="pm-link">Lihat Detail</button>
+                                    @if(Auth::user()->role === 'owner')
+                                        <a href="{{ route('progress.edit', $progress) }}" class="pm-link">Edit</a>
+                                        <form method="POST" action="{{ route('progress.destroy', $progress) }}" onsubmit="return confirm('Yakin ingin menghapus progress ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="pm-link text-red-700 hover:text-red-800">Hapus</button>
+                                        </form>
+                                    @endif
                                 </div>
                             </div>
                         </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="text-center py-12 bg-gray-50 rounded-lg">
-                    <svg class="mx-auto h-24 w-24 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Progress Update</h3>
-                    <p class="text-gray-500 mb-6">
-                        @if(auth()->user()->role === 'owner')
-                            Mulai tambahkan progress update untuk customer Anda.
-                        @else
-                            Progress update dari tim kami akan ditampilkan di sini.
-                        @endif
-                    </p>
+                    </article>
+                @endforeach
+            </section>
+        @else
+            <section class="pm-empty pm-reveal">
+                <p class="pm-kicker">Belum Ada Progress</p>
+                <h2 class="mt-3 font-heading text-4xl font-semibold text-slate-800">Belum ada progress update yang bisa ditampilkan.</h2>
+                <p class="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-600 sm:text-base">
                     @if(auth()->user()->role === 'owner')
-                        <a href="{{ route('progress.create') }}" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition duration-300">
-                            Tambah Progress Pertama
-                        </a>
+                        Mulai dengan menambahkan progress pertama untuk project customer.
+                    @else
+                        Progress dari tim akan tampil di sini begitu project mulai diperbarui.
                     @endif
-                </div>
-            @endif
-        </div>
-    </div>
-
-    <!-- Progress Detail Modal -->
-    <div id="progressModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg max-w-4xl w-full max-h-full overflow-y-auto">
-            <div class="p-6">
-                <div class="flex justify-between items-start mb-4">
-                    <h3 id="modal-title" class="text-2xl font-bold text-gray-900"></h3>
-                    <button onclick="closeProgressModal()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                <div id="modal-content">
-                    <!-- Content will be loaded here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    const progressData = @json($progressUpdates ?? []);
-    const baseUrl = "{{ url('/') }}";
-
-    function viewProgress(progressId) {
-        const progress = progressData.find(p => p.id === progressId);
-        if (!progress) return;
-        
-        document.getElementById('modal-title').textContent = 'Progress: ' + progress.id_project;
-        
-        // Check if foto is base64 or file path
-        let fotoSrc = '';
-        if (progress.foto && progress.foto !== '') {
-            fotoSrc = progress.foto.startsWith('data:') ? progress.foto : `${baseUrl}/${progress.foto}`;
-        }
-        
-        let content = `
-            <div class="space-y-4">
-                ${progress.foto && progress.foto !== '' ? 
-                    `<img src="${fotoSrc}" alt="Progress Update" class="w-full h-auto rounded-lg">` : 
-                    `<div class="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <svg class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                    </div>`
-                }
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <h4 class="font-semibold text-gray-900 mb-2">ID Project</h4>
-                        <p class="text-gray-700">${progress.id_project}</p>
+                </p>
+                @if(auth()->user()->role === 'owner')
+                    <div class="mt-6">
+                        <a href="{{ route('progress.create') }}" class="pm-btn pm-btn-primary">Tambah Progress Pertama</a>
                     </div>
-                    <div>
-                        <h4 class="font-semibold text-gray-900 mb-2">Tanggal Update</h4>
-                        <p class="text-gray-700">${new Date(progress.tanggal_update).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                    </div>
-                    ${progress.user ? `
-                        <div class="md:col-span-2">
-                            <h4 class="font-semibold text-gray-900 mb-2">Customer</h4>
-                            <p class="text-gray-700">${progress.user.name}</p>
-                        </div>
-                    ` : ''}
-                </div>
-                <div>
-                    <h4 class="font-semibold text-gray-900 mb-2">Deskripsi</h4>
-                    <p class="text-gray-700">${progress.deskripsi}</p>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('modal-content').innerHTML = content;
-        document.getElementById('progressModal').classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
+                @endif
+            </section>
+        @endif
+    </div>
+</div>
+
+<div id="progressModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-4">
+    <div class="pm-modal-panel max-w-4xl">
+        <div class="mb-4 flex items-center justify-between gap-4">
+            <h3 id="modal-title" class="font-heading text-3xl font-semibold text-stone-50"></h3>
+            <button type="button" onclick="closeProgressModal()" class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-stone-50 hover:bg-white/20">
+                <span class="sr-only">Tutup</span>
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div id="modal-content"></div>
+    </div>
+</div>
+
+<script>
+const progressData = @json($progressUpdates ?? []);
+const baseUrl = "{{ url('/') }}";
+const progressModal = document.getElementById('progressModal');
+
+function viewProgress(progressId) {
+    const progress = progressData.find(item => item.id === progressId);
+    if (!progress) return;
+
+    document.getElementById('modal-title').textContent = 'Progress ' + progress.id_project;
+
+    let fotoSrc = '';
+    if (progress.foto && progress.foto !== '') {
+        fotoSrc = progress.foto.startsWith('data:') ? progress.foto : `${baseUrl}/${progress.foto}`;
     }
 
-    function closeProgressModal() {
-        document.getElementById('progressModal').classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-    }
+    document.getElementById('modal-content').innerHTML = `
+        <div class="space-y-5">
+            ${progress.foto && progress.foto !== '' ? `<img src="${fotoSrc}" alt="Progress Update" class="max-h-[60vh] w-full rounded-[1.3rem] object-contain">` : ''}
+            <div class="grid gap-4 md:grid-cols-2">
+                <div class="rounded-[1.2rem] border border-white/10 bg-white/6 p-4">
+                    <p class="text-[11px] uppercase tracking-[0.22em] text-stone-200/70">ID Project</p>
+                    <p class="mt-2 text-lg font-semibold text-stone-50">${progress.id_project}</p>
+                </div>
+                <div class="rounded-[1.2rem] border border-white/10 bg-white/6 p-4">
+                    <p class="text-[11px] uppercase tracking-[0.22em] text-stone-200/70">Tanggal Update</p>
+                    <p class="mt-2 text-lg font-semibold text-stone-50">${new Date(progress.tanggal_update).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                </div>
+                ${progress.user ? `
+                    <div class="rounded-[1.2rem] border border-white/10 bg-white/6 p-4 md:col-span-2">
+                        <p class="text-[11px] uppercase tracking-[0.22em] text-stone-200/70">Customer</p>
+                        <p class="mt-2 text-lg font-semibold text-stone-50">${progress.user.name}</p>
+                    </div>
+                ` : ''}
+            </div>
+            <div class="rounded-[1.2rem] border border-white/10 bg-white/6 p-4">
+                <p class="text-[11px] uppercase tracking-[0.22em] text-stone-200/70">Deskripsi</p>
+                <p class="mt-3 text-sm leading-7 text-stone-100/88">${progress.deskripsi}</p>
+            </div>
+        </div>
+    `;
 
-    // Close modal when clicking outside
-    document.getElementById('progressModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeProgressModal();
-        }
-    });
-    </script>
+    progressModal.classList.remove('hidden');
+    progressModal.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeProgressModal() {
+    progressModal.classList.add('hidden');
+    progressModal.classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+}
+
+progressModal.addEventListener('click', function(event) {
+    if (event.target === progressModal) {
+        closeProgressModal();
+    }
+});
+</script>
 @endsection

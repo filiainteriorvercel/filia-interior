@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Notifications\ResetPasswordNotification;
@@ -21,8 +22,10 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'role',
+        'customer_code',
     ];
 
     /**
@@ -48,17 +51,39 @@ class User extends Authenticatable
         ];
     }
 
-    public function progressUpdates()
+    protected static function booted(): void
+    {
+        static::created(function (self $user): void {
+            $role = $user->role ?? 'customer';
+            if ($role === 'customer' && empty($user->customer_code)) {
+                $user->forceFill([
+                    'customer_code' => 'CUST-' . str_pad((string) $user->id, 4, '0', STR_PAD_LEFT),
+                ])->saveQuietly();
+            }
+        });
+    }
+
+    public function progressUpdates(): HasMany
     {
         return $this->hasMany(ProgressUpdate::class);
     }
 
-    public function isOwner()
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    public function createdPayments(): HasMany
+    {
+        return $this->hasMany(ProjectPayment::class, 'created_by');
+    }
+
+    public function isOwner(): bool
     {
         return $this->role === 'owner';
     }
 
-    public function isCustomer()
+    public function isCustomer(): bool
     {
         return $this->role === 'customer';
     }

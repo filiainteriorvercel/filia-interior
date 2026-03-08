@@ -1,171 +1,259 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-12">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6 text-gray-900">
-                <div class="flex justify-between items-center mb-6">
-                    <h1 class="text-2xl font-bold">Dashboard Customer</h1>
-                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                        {{ auth()->user()->role }}
-                    </span>
+@php
+    $totalProjects = $userProjects->count();
+    $totalPayments = $userProjects->sum(fn ($project) => $project->payments->count());
+    $avgPaid = $totalProjects ? $userProjects->avg(fn ($project) => (float) $project->payments->sum('payment_percent')) : 0;
+@endphp
+
+<div class="pm-shell">
+    <div class="pm-container">
+        <section class="pm-hero pm-reveal">
+            <div class="relative z-10 grid gap-8 xl:grid-cols-[minmax(0,1.2fr)_320px]">
+                <div>
+                    <span class="pm-hero-chip">Customer Project Room</span>
+                    <h1 class="mt-4 font-heading text-5xl font-semibold leading-none text-stone-50 sm:text-6xl">
+                        Selamat datang, {{ auth()->user()->name }}.
+                    </h1>
+                    <p class="mt-4 max-w-2xl text-sm leading-7 text-stone-200/88 sm:text-base">
+                        Pantau semua project Anda, lihat histori payment, dan buka bukti transaksi tanpa harus berpindah-pindah halaman.
+                    </p>
                 </div>
 
-                <!-- Welcome Message -->
-                <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg mb-8">
-                    <h2 class="text-xl font-bold mb-2">Selamat Datang, {{ auth()->user()->name }}!</h2>
-                    <p>Pantau progress pemesanan interior Anda secara real-time di sini.</p>
-                </div>
-
-                <!-- Progress Updates Section -->
-                <div class="mb-8">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Progress Pemesanan Anda</h3>
-                    
-                    @if(count($userProgressUpdates) > 0)
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            @foreach($userProgressUpdates as $progress)
-                                <div class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition duration-300">
-                                    @if($progress->foto)
-                                        @if(str_starts_with($progress->foto, 'data:'))
-                                            {{-- Base64 image from Vercel - use directly --}}
-                                            <img src="{{ $progress->foto }}" alt="Progress Update" class="w-full h-48 object-cover">
-                                        @else
-                                            {{-- File path from local - use asset() helper --}}
-                                            <img src="{{ asset($progress->foto) }}" alt="Progress Update" class="w-full h-48 object-cover">
-                                        @endif
-                                    @else
-                                        <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
-                                            <svg class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
-                                    @endif
-                                    
-                                    <div class="p-4">
-                                        <div class="flex justify-between items-start mb-2">
-                                            <h4 class="font-semibold text-gray-900">{{ $progress->id_project }}</h4>
-                                            <span class="text-xs text-gray-500">{{ $progress->tanggal_update->format('d M Y') }}</span>
-                                        </div>
-                                        <p class="text-gray-600 text-sm">{{ $progress->deskripsi }}</p>
-                                        
-                                        @if($progress->foto)
-                                            <button onclick="viewProgressImage('{{ str_starts_with($progress->foto, 'data:') ? $progress->foto : asset($progress->foto) }}', '{{ $progress->id_project }}', '{{ $progress->deskripsi }}')"  
-                                                    class="mt-3 text-blue-600 hover:text-blue-700 text-sm font-medium">
-                                                Lihat Detail →
-                                            </button>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
+                <div class="rounded-[1.7rem] border border-white/10 bg-white/10 p-5 backdrop-blur-md">
+                    <p class="pm-kicker text-stone-200/80">Customer Snapshot</p>
+                    <div class="mt-4 space-y-3 text-stone-100">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.2em] text-stone-200/70">ID Customer</p>
+                            <p class="mt-1 text-xl font-semibold">{{ auth()->user()->customer_code ?? '-' }}</p>
                         </div>
-                    @else
-                        <div class="text-center py-12 bg-gray-50 rounded-lg">
-                            <svg class="mx-auto h-24 w-24 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Progress Update</h3>
-                            <p class="text-gray-500 mb-6">
-                                Progress update dari tim kami akan ditampilkan di sini. Biasanya update pertama akan muncul setelah project dimulai.
-                            </p>
-                            <a href="{{ route('contact') }}" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
-                                Hubungi Tim Kami
-                            </a>
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.2em] text-stone-200/70">Email</p>
+                            <p class="mt-1 break-all text-sm">{{ auth()->user()->email }}</p>
                         </div>
-                    @endif
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- View All Progress -->
-                    <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-lg transition duration-300">
-                        <div class="text-center">
-                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Semua Progress</h3>
-                            <p class="text-gray-600 mb-4">Lihat semua update progress pemesanan Anda</p>
-                            <a href="{{ route('progress.index') }}" class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
-                                Lihat Semua
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Contact Support -->
-                    <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-lg transition duration-300">
-                        <div class="text-center">
-                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                </svg>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Hubungi Tim</h3>
-                            <p class="text-gray-600 mb-4">Ada pertanyaan? Hubungi tim customer service kami</p>
-                            <a href="{{ route('contact') }}" class="inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300">
-                                Hubungi Kami
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- View Portfolio -->
-                    <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-lg transition duration-300">
-                        <div class="text-center">
-                            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Portfolio</h3>
-                            <p class="text-gray-600 mb-4">Lihat galeri portfolio karya terbaik kami</p>
-                            <a href="{{ route('portfolio') }}" class="inline-block bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-300">
-                                Lihat Portfolio
-                            </a>
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.2em] text-stone-200/70">Status Akun</p>
+                            <span class="mt-2 inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]">{{ auth()->user()->role }}</span>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div class="pm-stat-card pm-reveal pm-delay-1">
+                <p class="pm-stat-label">Total Project</p>
+                <p class="pm-stat-value">{{ $totalProjects }}</p>
+                <p class="pm-stat-meta">Seluruh project yang terhubung ke akun Anda.</p>
+            </div>
+            <div class="pm-stat-card pm-reveal pm-delay-2">
+                <p class="pm-stat-label">Histori Payment</p>
+                <p class="pm-stat-value">{{ $totalPayments }}</p>
+                <p class="pm-stat-meta">Jumlah termin pembayaran yang telah dicatat.</p>
+            </div>
+            <div class="pm-stat-card pm-reveal pm-delay-3">
+                <p class="pm-stat-label">Rata Pembayaran</p>
+                <p class="pm-stat-value">{{ number_format((float) $avgPaid, 1) }}%</p>
+                <p class="pm-stat-meta">Rata-rata progres pembayaran semua project.</p>
+            </div>
+        </section>
+
+        @if($userProjects->isNotEmpty())
+            <section class="space-y-6">
+                @foreach($userProjects as $project)
+                    @php
+                        $totalPaid = (float) $project->payments->sum('payment_percent');
+                        $barWidth = $totalPaid > 0 ? min(100, max(10, $totalPaid)) : 0;
+                        $statusClass = match ($project->status) {
+                            'completed' => 'pm-badge pm-badge-success',
+                            'on_hold' => 'pm-badge pm-badge-hold',
+                            'cancelled' => 'pm-badge pm-badge-danger',
+                            default => 'pm-badge pm-badge-progress',
+                        };
+                        $statusLabel = ucwords(str_replace('_', ' ', $project->status));
+                    @endphp
+                    <article class="pm-panel pm-reveal" style="animation-delay: {{ 0.08 * $loop->index }}s;">
+                        <div class="flex flex-col gap-6">
+                            <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                                <div>
+                                    <p class="pm-kicker">Project Anda</p>
+                                    <h2 class="mt-2 font-heading text-4xl font-semibold text-slate-900">{{ $project->project_code }}</h2>
+                                    <p class="mt-3 text-sm text-slate-600">
+                                        ID Customer {{ auth()->user()->customer_code ?? '-' }} · Dealing {{ optional($project->deal_date)->format('d M Y') ?? '-' }}
+                                    </p>
+                                </div>
+                                <div class="flex flex-col gap-3 sm:min-w-[280px]">
+                                    <div class="flex items-center justify-between text-sm font-semibold text-slate-600">
+                                        <span>{{ $statusLabel }}</span>
+                                        <span>{{ number_format($totalPaid, 2) }}%</span>
+                                    </div>
+                                    <div class="pm-progress-bar">
+                                        <span style="width: {{ $barWidth }}%;"></span>
+                                    </div>
+                                    <div class="flex justify-end">
+                                        <span class="{{ $statusClass }}">{{ $statusLabel }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                                <section class="rounded-[1.4rem] border border-stone-200 bg-white/70 p-5">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div>
+                                            <p class="pm-kicker">Progress Timeline</p>
+                                            <h3 class="mt-2 text-xl font-bold text-slate-900">Update pengerjaan</h3>
+                                        </div>
+                                        <span class="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                            {{ $project->progressUpdates->count() }} update
+                                        </span>
+                                    </div>
+
+                                    <div class="pm-timeline mt-6">
+                                        @forelse($project->progressUpdates->take(5) as $progress)
+                                            <div class="pm-timeline-card">
+                                                <div class="flex items-start justify-between gap-4">
+                                                    <div>
+                                                        <p class="pm-timeline-date">{{ $progress->tanggal_update->format('d M Y') }}</p>
+                                                        <p class="mt-2 text-sm leading-7 text-slate-600">{{ $progress->deskripsi }}</p>
+                                                    </div>
+                                                    <span class="pm-badge pm-badge-progress">{{ $progress->status ? ucwords(str_replace('_', ' ', $progress->status)) : 'Update' }}</span>
+                                                </div>
+
+                                                @if($progress->foto)
+                                                    <div class="mt-4">
+                                                        <button
+                                                            type="button"
+                                                            onclick="viewImage('{{ str_starts_with($progress->foto, 'data:') ? $progress->foto : asset($progress->foto) }}', 'Foto Progress {{ $project->project_code }}')"
+                                                            class="pm-link"
+                                                        >
+                                                            Lihat Foto
+                                                        </button>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @empty
+                                            <div class="rounded-[1.2rem] border border-dashed border-stone-200 px-4 py-8 text-center text-sm text-slate-500">
+                                                Belum ada progress update untuk project ini.
+                                            </div>
+                                        @endforelse
+                                    </div>
+                                </section>
+
+                                <section class="rounded-[1.4rem] border border-stone-200 bg-white/70 p-5">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div>
+                                            <p class="pm-kicker">Payment Timeline</p>
+                                            <h3 class="mt-2 text-xl font-bold text-slate-900">Histori pembayaran</h3>
+                                        </div>
+                                        <span class="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                                            {{ $project->payments->count() }} termin
+                                        </span>
+                                    </div>
+
+                                    <div class="pm-timeline mt-6">
+                                        @if($project->deal_payment_proof)
+                                            <div class="pm-timeline-card border-emerald-200 bg-emerald-50/70">
+                                                <p class="pm-timeline-date">Dealing · {{ optional($project->deal_date)->format('d M Y') ?? '-' }}</p>
+                                                <p class="mt-2 text-sm leading-7 text-slate-600">Bukti pembayaran awal project tersedia.</p>
+                                                <div class="mt-4">
+                                                    <button
+                                                        type="button"
+                                                        onclick="viewImage('{{ route('dashboard.projects.deal-proof', $project) }}', 'Bukti Dealing {{ $project->project_code }}')"
+                                                        class="pm-link"
+                                                    >
+                                                        Lihat Bukti
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @forelse($project->payments as $payment)
+                                            <div class="pm-timeline-card">
+                                                <div class="flex items-start justify-between gap-4">
+                                                    <div>
+                                                        <p class="pm-timeline-date">{{ $payment->payment_date->format('d M Y') }}</p>
+                                                        <p class="mt-2 text-xl font-bold text-slate-900">{{ number_format((float) $payment->payment_percent, 2) }}%</p>
+                                                        <p class="mt-2 text-sm leading-7 text-slate-600">{{ $payment->notes ?? 'Tanpa catatan termin.' }}</p>
+                                                    </div>
+                                                    <span class="pm-badge pm-badge-success">Tercatat</span>
+                                                </div>
+
+                                                @if($payment->payment_proof)
+                                                    <div class="mt-4">
+                                                        <button
+                                                            type="button"
+                                                            onclick="viewImage('{{ route('dashboard.projects.payments.proof', [$project, $payment]) }}', 'Bukti Pembayaran {{ $project->project_code }}')"
+                                                            class="pm-link"
+                                                        >
+                                                            Lihat Bukti
+                                                        </button>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @empty
+                                            <div class="rounded-[1.2rem] border border-dashed border-stone-200 px-4 py-8 text-center text-sm text-slate-500">
+                                                Belum ada histori pembayaran progress.
+                                            </div>
+                                        @endforelse
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </article>
+                @endforeach
+            </section>
+        @else
+            <section class="pm-empty pm-reveal">
+                <p class="pm-kicker">Belum Ada Project</p>
+                <h2 class="mt-3 font-heading text-4xl font-semibold text-slate-800">Project Anda belum tersedia.</h2>
+                <p class="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-600 sm:text-base">
+                    Project akan muncul di sini setelah admin membuat data project untuk akun Anda.
+                </p>
+                <div class="mt-6">
+                    <a href="{{ route('contact') }}" class="pm-btn pm-btn-primary">Hubungi Tim Kami</a>
+                </div>
+            </section>
+        @endif
     </div>
 </div>
 
-<!-- Progress Image Modal -->
-<div id="progressModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg max-w-4xl w-full max-h-full overflow-y-auto">
-        <div class="p-6">
-            <div class="flex justify-between items-start mb-4">
-                <h3 id="modal-title" class="text-2xl font-bold text-gray-900"></h3>
-                <button onclick="closeProgressModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <div id="modal-image" class="mb-4"></div>
-            <div id="modal-description" class="text-gray-700"></div>
+<div id="imageModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 p-4">
+    <div class="pm-modal-panel max-w-4xl">
+        <div class="mb-4 flex items-center justify-between gap-4">
+            <h3 id="imageModalTitle" class="font-heading text-3xl font-semibold text-stone-50"></h3>
+            <button type="button" onclick="closeImageModal()" class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-stone-50 hover:bg-white/20">
+                <span class="sr-only">Tutup</span>
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
+        <img id="imageModalSrc" src="" alt="Detail Bukti" class="max-h-[72vh] w-full rounded-[1.3rem] object-contain">
     </div>
 </div>
 
 <script>
-function viewProgressImage(imageSrc, title, description) {
-    document.getElementById('modal-title').textContent = 'Progress: ' + title;
-    document.getElementById('modal-image').innerHTML = '<img src="' + imageSrc + '" alt="Progress Update" class="w-full h-auto rounded-lg">';
-    document.getElementById('modal-description').textContent = description;
-    document.getElementById('progressModal').classList.remove('hidden');
+const imageModal = document.getElementById('imageModal');
+
+function viewImage(src, title) {
+    document.getElementById('imageModalTitle').textContent = title;
+    document.getElementById('imageModalSrc').src = src;
+    imageModal.classList.remove('hidden');
+    imageModal.classList.add('flex');
     document.body.classList.add('overflow-hidden');
 }
 
-function closeProgressModal() {
-    document.getElementById('progressModal').classList.add('hidden');
+function closeImageModal() {
+    imageModal.classList.add('hidden');
+    imageModal.classList.remove('flex');
+    document.getElementById('imageModalSrc').src = '';
     document.body.classList.remove('overflow-hidden');
 }
 
-// Close modal when clicking outside
-document.getElementById('progressModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeProgressModal();
+imageModal.addEventListener('click', function(event) {
+    if (event.target === imageModal) {
+        closeImageModal();
     }
 });
 </script>
